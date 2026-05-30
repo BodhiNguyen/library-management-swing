@@ -135,4 +135,73 @@ public class FileHandler {
 
         return readers;
     }
+
+    public static void saveBorrowRecords(List<BorrowRecord> records) throws IOException {
+        createDataFolderIfNeeded();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(BORROW_RECORD_FILE))) {
+            for (BorrowRecord record : records) {
+                writer.write(record.getRecordId() + ";"
+                        + record.getBookId() + ";"
+                        + record.getReaderId() + ";"
+                        + record.getBorrowDate() + ";"
+                        + record.getReturnDate() + ";"
+                        + record.isReturned());
+                writer.newLine();
+            }
+        }
+    }
+
+    public static List<BorrowRecord> loadBorrowRecords() throws IOException {
+        List<BorrowRecord> records = new ArrayList<>();
+        File borrowRecordFile = new File(BORROW_RECORD_FILE);
+
+        if (!borrowRecordFile.exists()) {
+            return records;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(borrowRecordFile))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = line.split(";", -1);
+
+                if (parts.length != 6) {
+                    System.err.println("Bo qua dong phieu muon sai dinh dang: " + line);
+                    continue;
+                }
+
+                String recordId = parts[0];
+                String bookId = parts[1];
+                String readerId = parts[2];
+                String borrowDate = parts[3];
+                String returnDate = parts[4];
+                String returnedText = parts[5].trim();
+
+                if (!returnedText.equalsIgnoreCase("true") && !returnedText.equalsIgnoreCase("false")) {
+                    System.err.println("Bo qua dong phieu muon co trang thai returned khong hop le: " + line);
+                    continue;
+                }
+
+                boolean returned = Boolean.parseBoolean(returnedText);
+
+                BorrowRecord record = new BorrowRecord(
+                        recordId,
+                        bookId,
+                        readerId,
+                        borrowDate,
+                        returnDate,
+                        returned
+                );
+
+                records.add(record);
+            }
+        }
+
+        return records;
+    }
 }
