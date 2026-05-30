@@ -83,4 +83,56 @@ public class FileHandler {
 
         return books;
     }
+
+    public static void saveReaders(List<Reader> readers) throws IOException {
+        createDataFolderIfNeeded();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(READER_FILE))) {
+            for (Reader reader : readers) {
+                writer.write(reader.getId() + ";"
+                        + reader.getName() + ";"
+                        + reader.getPhone() + ";"
+                        + reader.getEmail() + ";"
+                        + reader.getAddress());
+                writer.newLine();
+            }
+        }
+    }
+
+    public static List<Reader> loadReaders() throws IOException {
+        List<Reader> readers = new ArrayList<>();
+        File readerFile = new File(READER_FILE);
+
+        if (!readerFile.exists()) {
+            return readers;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(readerFile))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = line.split(";", -1);
+
+                if (parts.length != 5) {
+                    System.err.println("Bo qua dong nguoi muon sai dinh dang: " + line);
+                    continue;
+                }
+
+                String id = parts[0];
+                String name = parts[1];
+                String phone = parts[2];
+                String email = parts[3];
+                String address = parts[4];
+
+                Reader loadedReader = new Reader(id, name, phone, email, address);
+                readers.add(loadedReader);
+            }
+        }
+
+        return readers;
+    }
 }
